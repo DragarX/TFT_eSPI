@@ -619,8 +619,12 @@ void TFT_eSPI::dmaWait(void)
   for (int i = 0; i < spiBusyCheck; ++i)
   {
     ret = spi_device_get_trans_result(dmaHAL, &rtrans, portMAX_DELAY);
-    assert(ret == ESP_OK);
+    if (ret != ESP_OK) {
+      log_e("dmaWait failed: %s - resetting DMA", esp_err_to_name(ret));
+      break;
+    }
   }
+  WRITE_PERI_REG( SPI_DMA_CONF_REG(SPI_DMA_CH_AUTO) , 0x00 );
   spiBusyCheck = 0;
 }
 
@@ -663,8 +667,14 @@ void TFT_eSPI::pushPixelsDMA(uint16_t* image, uint32_t len)
   trans.flags = 0;                //SPI_TRANS_USE_TXDATA flag
 
   ret = spi_device_queue_trans(dmaHAL, &trans, portMAX_DELAY);
-  assert(ret == ESP_OK);
-
+  if (ret != ESP_OK) {
+      log_e("pushImageDMA failed: %s - resetting DMA", esp_err_to_name(ret));
+      spiBusyCheck = 0;
+      spi_transaction_t *rtrans;
+      spi_device_get_trans_result(dmaHAL, &rtrans, portMAX_DELAY);
+      setAddrWindow(0, 0, _width, _height);
+      return;
+  }
   spiBusyCheck++;
 }
 
@@ -707,8 +717,14 @@ void TFT_eSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t
   trans.flags = 0;           //SPI_TRANS_USE_TXDATA flag
 
   ret = spi_device_queue_trans(dmaHAL, &trans, portMAX_DELAY);
-  assert(ret == ESP_OK);
-
+  if (ret != ESP_OK) {
+      log_e("pushImageDMA failed: %s - resetting DMA", esp_err_to_name(ret));
+      spiBusyCheck = 0;
+      spi_transaction_t *rtrans;
+      spi_device_get_trans_result(dmaHAL, &rtrans, portMAX_DELAY);
+      setAddrWindow(0, 0, _width, _height);
+      return;
+  }
   spiBusyCheck++;
 }
 
@@ -795,8 +811,14 @@ void TFT_eSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t
   trans.flags = 0;           //SPI_TRANS_USE_TXDATA flag
 
   ret = spi_device_queue_trans(dmaHAL, &trans, portMAX_DELAY);
-  assert(ret == ESP_OK);
-
+  if (ret != ESP_OK) {
+      log_e("pushImageDMA failed: %s - resetting DMA", esp_err_to_name(ret));
+      spiBusyCheck = 0;
+      spi_transaction_t *rtrans;
+      spi_device_get_trans_result(dmaHAL, &rtrans, portMAX_DELAY);
+      setAddrWindow(0, 0, _width, _height);
+      return;
+  }
   spiBusyCheck++;
 }
 
